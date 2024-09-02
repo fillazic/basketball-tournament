@@ -137,10 +137,10 @@ function grupnaFaza(x) {
 
     const matches = [
         [teams[0], teams[1], rank[0], rank[1]],
-        [teams[0], teams[2], rank[0], rank[2]],
+        [teams[2], teams[0], rank[2], rank[0]],
         [teams[0], teams[3], rank[0], rank[3]],
         [teams[1], teams[2], rank[1], rank[2]],
-        [teams[1], teams[3], rank[1], rank[3]],
+        [teams[3], teams[1], rank[3], rank[1]],
         [teams[2], teams[3], rank[2], rank[3]]
     ];
 
