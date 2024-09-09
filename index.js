@@ -1,16 +1,21 @@
 
 
 const grupe = require('./groups.json');
-const timovi = grupe
+const form = require('./exibitions.json');
+const timovi = grupe;
+const forme = form;
 const grupe1 =[];
 let utakmice = [];
 
 
-const igra = (tim1, tim2, rang1, rang2) => {
+const igra = (tim1, tim2, rang1, rang2, forma1, forma2) => {
 
     const sumaRangova = rang1 + rang2;
-    verovatnocaTima1 = rang2 / sumaRangova;
-    verovatnocaTima2 = rang1 / sumaRangova
+    let verovatnocaTima1 = rang2 / sumaRangova;
+    let verovatnocaTima2 = rang1 / sumaRangova
+
+    const faktorForme = forma1 - forma2;
+    verovatnocaTima1 += faktorForme * 0.01;
 
     const randomBroj = Math.random();
     let predaja;
@@ -38,7 +43,7 @@ const igra = (tim1, tim2, rang1, rang2) => {
 
 //console.log(`${verovatnocaTima1} vs ${verovatnocaTima2}`)
 //console.log(randomBroj)
-//console.log(`${rang1} vs ${rang2}`)
+//console.log(`${forma1} vs ${forma2}`)
 console.log(` ${tim1} vs ${tim2}: ${rez1} - ${rez2}`);
     if (rez1 > rez2 && !predaja) {
         return { pobednik: tim1, 
@@ -49,7 +54,8 @@ console.log(` ${tim1} vs ${tim2}: ${rez1} - ${rez2}`);
                 primljeni_kosevi_pobednika: rez2,
                 postignuti_kosevi_gubitnika: rez2,
                 primljeni_kosevi_gubitnika: rez1,
-                predaja: predaja 
+                predaja: predaja, 
+               
                 };
     } else if (rez2 > rez1 && !predaja) {
         return { pobednik: tim2, 
@@ -60,7 +66,8 @@ console.log(` ${tim1} vs ${tim2}: ${rez1} - ${rez2}`);
                 primljeni_kosevi_pobednika: rez1,
                 postignuti_kosevi_gubitnika: rez1,
                 primljeni_kosevi_gubitnika: rez2,
-                predaja: predaja  
+                predaja: predaja,
+         
                 };
 
         }  else if (rez1 > rez2 && predaja) {
@@ -72,7 +79,8 @@ console.log(` ${tim1} vs ${tim2}: ${rez1} - ${rez2}`);
               primljeni_kosevi_pobednika: rez2,
               postignuti_kosevi_gubitnika: rez2,
               primljeni_kosevi_gubitnika: rez1,
-              predaja: predaja           
+              predaja: predaja,
+                    
          }
         } else if (rez1 < rez2 && predaja) {
             return  { pobednik: tim2, 
@@ -83,7 +91,8 @@ console.log(` ${tim1} vs ${tim2}: ${rez1} - ${rez2}`);
               primljeni_kosevi_pobednika: rez1,
               postignuti_kosevi_gubitnika: rez1,
               primljeni_kosevi_gubitnika: rez2,
-              predaja: predaja           
+              predaja: predaja,
+                    
          }
         }
         
@@ -92,26 +101,47 @@ console.log(` ${tim1} vs ${tim2}: ${rez1} - ${rez2}`);
     }
 }
 
-function grupnaFaza(x) {
+function grupnaFaza(x , d) {
     const teams = [];
-    for (i=0 ; i<x.length; i++) {
+    for (let i=0 ; i<x.length; i++) {
      teams.push(x[i].Team);
     }
     const rank = [];
-    for (i=0 ; i<x.length; i++) {
+    for (let i=0 ; i<x.length; i++) {
         rank.push(x[i].FIBARanking)
     }
 
     const oznake = [];
-    for (i=0 ; i<x.length; i++) {
+    const predhodneUtakmice=[];
+    for (let i=0 ; i<x.length; i++) {
         oznake.push(x[i].ISOCode)
+        predhodneUtakmice.push(d[x[i].ISOCode])
     }
-   
+
+    const forma = [];
+    let ukPostignuti;
+    let ukPrimljeni;
+    for (let i = 0; i < predhodneUtakmice.length; i++) {
+        ukPostignuti = 0;
+        ukPrimljeni = 0;
+        for (let j = 0; j < predhodneUtakmice[i].length; j++) {
+            let rez = predhodneUtakmice[i][j].Result.split("-");
+            let postignuti = parseInt(rez[0]);
+            let primljeni = parseInt(rez[1]);
+        ukPostignuti += postignuti;
+        ukPrimljeni += primljeni;
+        
+    }
+    //console.log(ukPostignuti)
+    //console.log(ukPrimljeni)
+    forma.push(ukPostignuti/2-ukPrimljeni/2) 
+}
     const bodovi = {};
     const broj_pobeda = {};
     const broj_poraza = {};
     const postignuti_kosevi = {};
     const primljeni_kosevi = {};
+    const brojUtakmica = {}
 
     const rezultat = [];
 
@@ -135,17 +165,21 @@ function grupnaFaza(x) {
         primljeni_kosevi[team] = 0;
     });
 
+    teams.forEach(team => {
+        brojUtakmica[team] = 0;
+    });
+
     const matches = [
-        [teams[0], teams[1], rank[0], rank[1]],
-        [teams[2], teams[0], rank[2], rank[0]],
-        [teams[0], teams[3], rank[0], rank[3]],
-        [teams[1], teams[2], rank[1], rank[2]],
-        [teams[3], teams[1], rank[3], rank[1]],
-        [teams[2], teams[3], rank[2], rank[3]]
+        [teams[0], teams[1], rank[0], rank[1], forma[0], forma[1]],
+        [teams[2], teams[0], rank[2], rank[0], forma[2], forma[0]],
+        [teams[0], teams[3], rank[0], rank[3], forma[0], forma[3]],
+        [teams[1], teams[2], rank[1], rank[2], forma[1], forma[2]],
+        [teams[3], teams[1], rank[3], rank[1], forma[3], forma[1]],
+        [teams[2], teams[3], rank[2], rank[3], forma[2], forma[3]]
     ];
 
     matches.forEach(match => {
-        const rezultati = igra(match[0], match[1], match[2], match[3] );
+        const rezultati = igra(match[0], match[1], match[2], match[3], match[4], match[5] );
         if (rezultati.pobednik !== null) {
             bodovi[rezultati.pobednik] += rezultati.poeni_pobednika;
             broj_pobeda[rezultati.pobednik] += rezultati.poeni_pobednika/2;
@@ -155,6 +189,8 @@ function grupnaFaza(x) {
             broj_poraza[rezultati.porazeni] += rezultati.poeni_porazenog;
             postignuti_kosevi[rezultati.porazeni] += rezultati.postignuti_kosevi_gubitnika;
             primljeni_kosevi[rezultati.porazeni] += rezultati.primljeni_kosevi_gubitnika;
+            brojUtakmica[rezultati.pobednik] += 1;
+            brojUtakmica[rezultati.porazeni] += 1;
         }
         if (rezultati.predaja) {
             console.log(`Ekipa koja je predala meč: ${rezultati.porazeni}`)
@@ -183,11 +219,15 @@ function grupnaFaza(x) {
             bodovi: bodovi[team],
             dati_kosevi: postignuti_kosevi[team],
             primljeni_kosevi: primljeni_kosevi[team],
-            razlika: razlika
+            razlika: razlika,
+            brojUtakmica: brojUtakmica[team],
+            forma: (postignuti_kosevi[team]/brojUtakmica[team])-(primljeni_kosevi[team]/brojUtakmica[team])
     })
        
     }
    // console.log(rezultat)
+   //console.log(predhodneUtakmice)
+  //console.log(forma)
     return [rezultat, utakmice];
     }
 
@@ -221,14 +261,15 @@ function grupnaFaza(x) {
 
         const duplikat=(Object.values(brojac));
     //   console.log(nizovi)
-    //    console.log(duplikat[0])
-    //    console.log(duplikati)
+    //   console.log(duplikat[0])
+    //   console.log(duplikati)
+    //   console.log(brojac)
        if (duplikati.length > 0 ) {
            
                 if (duplikat[0] == 2 ) {
-                   
-                    teamA = duplikati[0].tim;
-                    teamB = duplikati[1].tim;
+                for (let i = 0; i < duplikati.length - 1; i +=2) {
+                    teamA = duplikati[i].tim;
+                    teamB = duplikati[i+1].tim;
                     const zadnjaUtakmica = ut.find(game => {
                     return (
                         (game.pobednik === teamA && game.porazeni === teamB) ||
@@ -246,7 +287,7 @@ function grupnaFaza(x) {
                         if (a.tim === zadnjaUtakmica.porazeni) return 1;  
                                                 
                     });
-                
+                }
                     konacno=nizovi.concat(duplikati);
                     konacno.sort((a, b) => b.bodovi-a.bodovi)
                 }
@@ -314,19 +355,19 @@ function grupnaFaza(x) {
     }
 
 // simulacija grupne faze
-function simulacija (y) {
+function simulacija (y, m) {
     console.log('Grupna faza - I kolo:')
     console.log('')
     console.log('Grupa A:')
-    sortiranje(...grupnaFaza(y.A)),
+    sortiranje(...grupnaFaza(y.A, m)),
     console.log('')
     console.log('Grupa B:')
-    sortiranje(...grupnaFaza(y.B)),
+    sortiranje(...grupnaFaza(y.B, m)),
     console.log('')
     console.log('Grupa C:')
-    sortiranje(...grupnaFaza(y.C))
+    sortiranje(...grupnaFaza(y.C, m))
     }
-simulacija(timovi)
+simulacija(timovi, forme)
 
 //console.log(grupe1)
 
@@ -440,7 +481,19 @@ cetvrtFinale(E, F, utakmice);
 console.log('')
 console.log('Četvrtfinale: ')
 for (let i = 0; i < timoviCetvrt.length - 1; i +=2) {
-    let m = igra(timoviCetvrt[i].tim, timoviCetvrt[i + 1].tim, timoviCetvrt[i].rank, timoviCetvrt[i + 1].rank);
+    let m = igra(timoviCetvrt[i].tim, timoviCetvrt[i + 1].tim, timoviCetvrt[i].rank, timoviCetvrt[i + 1].rank, timoviCetvrt[i].forma, timoviCetvrt[i + 1].forma);
+    if (timoviCetvrt[i].tim === m.pobednik ) {
+        timoviCetvrt[i].dati_kosevi += m.postignuti_kosevi_pobednika
+        timoviCetvrt[i].primljeni_kosevi += m.primljeni_kosevi_pobednika
+        timoviCetvrt[i].brojUtakmica += 1
+        timoviCetvrt[i].forma += (timoviCetvrt[i].dati_kosevi/timoviCetvrt[i].brojUtakmica-timoviCetvrt[i].primljeni_kosevi/timoviCetvrt[i].brojUtakmica)
+    }
+    else {
+        timoviCetvrt[i+1].dati_kosevi += m.postignuti_kosevi_pobednika
+        timoviCetvrt[i+1].primljeni_kosevi += m.primljeni_kosevi_pobednika
+        timoviCetvrt[i+1].brojUtakmica += 1
+        timoviCetvrt[i+1].forma += (timoviCetvrt[i+1].dati_kosevi/timoviCetvrt[i+1].brojUtakmica-timoviCetvrt[i+1].primljeni_kosevi/timoviCetvrt[i+1].brojUtakmica)
+    }
     polufinalisti.push(timoviCetvrt[i].tim === m.pobednik ? timoviCetvrt[i] : timoviCetvrt[i + 1]);
 }
 
@@ -452,26 +505,50 @@ const treceMesto= [];
 
 console.log('')
 console.log('Polufinale: ')
-const finalista1= igra(polufinalisti[0].tim, polufinalisti[1].tim, polufinalisti[0].rank, polufinalisti[1].rank )
-const finalista2= igra(polufinalisti[2].tim, polufinalisti[3].tim, polufinalisti[2].rank, polufinalisti[3].rank )
+for (let i = 0; i < polufinalisti.length - 1; i +=2) {
+    let finalisti = igra(polufinalisti[i].tim, polufinalisti[i + 1].tim, polufinalisti[i].rank, polufinalisti[i + 1].rank, polufinalisti[i].forma, polufinalisti[i + 1].forma)
 
-finale.push(polufinalisti[0].tim === finalista1.pobednik ? polufinalisti[0]: polufinalisti[1]);
-treceMesto.push(polufinalisti[0].tim === finalista1.porazeni ? polufinalisti[0]: polufinalisti[1])
+if (polufinalisti[i].tim === finalisti.pobednik ) {
+    polufinalisti[i].dati_kosevi += finalisti.postignuti_kosevi_pobednika
+    polufinalisti[i].primljeni_kosevi += finalisti.primljeni_kosevi_pobednika
+    polufinalisti[i].brojUtakmica += 1
+    polufinalisti[i].forma += (polufinalisti[i].dati_kosevi/polufinalisti[i].brojUtakmica-polufinalisti[i].primljeni_kosevi/polufinalisti[i].brojUtakmica)
+}
+else {
+    polufinalisti[i+1].dati_kosevi += finalisti.postignuti_kosevi_pobednika
+    polufinalisti[i+1].primljeni_kosevi += finalisti.primljeni_kosevi_pobednika
+    polufinalisti[i+1].brojUtakmica += 1
+    polufinalisti[i].forma += (polufinalisti[i+1].dati_kosevi/polufinalisti[i+1].brojUtakmica-polufinalisti[i+1].primljeni_kosevi/polufinalisti[i+1].brojUtakmica)
+}
+if (polufinalisti[i].tim === finalisti.porazeni ) {
+    polufinalisti[i].dati_kosevi += finalisti.postignuti_kosevi_gubitnika
+    polufinalisti[i].primljeni_kosevi += finalisti.primljeni_kosevi_gubitnika
+    polufinalisti[i].brojUtakmica += 1
+    polufinalisti[i].forma += (polufinalisti[i].dati_kosevi/polufinalisti[i].brojUtakmica-polufinalisti[i].primljeni_kosevi/polufinalisti[i].brojUtakmica)
+}
+else {
+    polufinalisti[i+1].dati_kosevi += finalisti.postignuti_kosevi_gubitnika
+    polufinalisti[i+1].primljeni_kosevi += finalisti.primljeni_kosevi_gubitnika
+    polufinalisti[i+1].brojUtakmica += 1
+    polufinalisti[i].forma += (polufinalisti[i+1].dati_kosevi/polufinalisti[i+1].brojUtakmica-polufinalisti[i+1].primljeni_kosevi/polufinalisti[i+1].brojUtakmica)
+}
 
-finale.push(polufinalisti[2].tim === finalista2.pobednik ? polufinalisti[2]: polufinalisti[3]);
-treceMesto.push(polufinalisti[2].tim === finalista2.porazeni ? polufinalisti[2]: polufinalisti[3])
+finale.push(polufinalisti[i].tim === finalisti.pobednik ? polufinalisti[i]: polufinalisti[i+1]);
+treceMesto.push(polufinalisti[i].tim === finalisti.porazeni ? polufinalisti[i]: polufinalisti[i+1])
+
+}
 
 
 
 //TRECE MESTO
 console.log('')
 console.log('Utakmica za treće mesto: ')
-const trece =  igra(treceMesto[0].tim, treceMesto[1].tim, treceMesto[0].rank, treceMesto[1].rank )
+const trece =  igra(treceMesto[0].tim, treceMesto[1].tim, treceMesto[0].rank, treceMesto[1].rank, treceMesto[0].forma, treceMesto[1].forma )
 
 //FINALE
 console.log('')
 console.log('Finale: ')
-const finalnaUtakmica = igra(finale[0].tim, finale[1].tim, finale[0].rank, finale[1].rank )
+const finalnaUtakmica = igra(finale[0].tim, finale[1].tim, finale[0].rank, finale[1].rank, finale[0].forma, finale[1].forma )
 
 console.log('')
 console.log(
